@@ -9,105 +9,126 @@ import random
 import os
 
 # --- Configuração da Página ---
-st.set_page_config(layout="wide", page_title="NAVE 2026 Dashboard", page_icon="🚀")
+st.set_page_config(layout="wide", page_title="NAVE 2026 | Dashboard", page_icon="🚀")
 
-# --- Estilos CSS ---
-st.markdown("""
-<style>
-    .main {
-        background-color: #f8f9fa;
-    }
-    h1 {
-        color: #2c3e50;
-        font-family: 'Helvetica Neue', sans-serif;
-    }
-    h2 {
-        color: #e67e22; /* Laranja NAVE */
-        border-bottom: 2px solid #e67e22;
-        padding-bottom: 10px;
-        margin-top: 30px;
-    }
-    h3 {
-        color: #34495e;
-    }
-    .stButton>button {
-        background-color: #e67e22;
-        color: white;
-        border-radius: 10px;
-        border: none;
-        padding: 10px 24px;
-        font-weight: bold;
-    }
-    .stButton>button:hover {
-        background-color: #d35400;
-        color: white;
-    }
-    .metric-card {
-        background-color: white;
-        padding: 20px;
-        border-radius: 10px;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        text-align: center;
-    }
-    /* Estilo para container de filtros */
-    .filter-box {
-        border: 1px solid #e0e0e0;
-        padding: 15px;
-        border-radius: 10px;
-        background-color: #ffffff;
-        margin-bottom: 20px;
-    }
-    </style>
-    """, unsafe_allow_html=True)
+# ==============================================================================
+# 🎨 1. TEMA E CSS (ALTO CONTRASTE NUCLEAR)
+# ==============================================================================
+# Este bloco garante que textos sejam sempre visíveis, independente do tema do navegador.
 
-# --- Constantes e Segredos ---
-PASSWORD = "NAVE2026"
-SCOPES = [
-    "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive"
-]
+if 'theme' not in st.session_state:
+    st.session_state.theme = 'light'
 
-# Mapeamento Real Aproximado (Centróide) dos Bairros de Maricá
-COORDENADAS_BAIRROS = {
-    "Araçatiba":        {"lat": -22.9275, "lon": -42.8098},
-    "Bambuí":           {"lat": -22.9231, "lon": -42.7482},
-    "Barra de Maricá":  {"lat": -22.9567, "lon": -42.8374},
-    "Boqueirão":        {"lat": -22.9224, "lon": -42.8336},
-    "Caju":             {"lat": -22.9125, "lon": -42.8055},
-    "Centro":           {"lat": -22.9194, "lon": -42.8183},
-    "Condado de Maricá":{"lat": -22.9130, "lon": -42.7850},
-    "Cordeirinho":      {"lat": -22.9602, "lon": -42.7561},
-    "Flamengo":         {"lat": -22.9150, "lon": -42.8250},
-    "Inoã":             {"lat": -22.9188, "lon": -42.8712},
-    "Itaipuaçu":        {"lat": -22.9658, "lon": -42.9242},
-    "Itapeba":          {"lat": -22.9080, "lon": -42.8300},
-    "Jacaroá":          {"lat": -22.9055, "lon": -42.7950},
-    "Jaconé":           {"lat": -22.9370, "lon": -42.6390},
-    "Jardim Interlagos":{"lat": -22.9400, "lon": -42.7200},
-    "Lagarto":          {"lat": -22.9000, "lon": -42.7800},
-    "Maricá":           {"lat": -22.9194, "lon": -42.8183},
-    "Mumbuca":          {"lat": -22.9085, "lon": -42.8120},
-    "Parque Nanci":     {"lat": -22.9150, "lon": -42.8450},
-    "Pilar":            {"lat": -22.8850, "lon": -42.8100},
-    "Pindobal":         {"lat": -22.9300, "lon": -42.7400},
-    "Ponta Negra":      {"lat": -22.9610, "lon": -42.6930},
-    "Restinga de Maricá":{"lat": -22.9680, "lon": -42.8500},
-    "Retiro":           {"lat": -22.8950, "lon": -42.7850},
-    "São José do Imbassaí": {"lat": -22.9380, "lon": -42.8440},
-    "Silvado":          {"lat": -22.8700, "lon": -42.7800},
-    "Spar":             {"lat": -22.9250, "lon": -42.8900},
-    "Ubatiba":          {"lat": -22.8800, "lon": -42.7900},
-    "Vale da Figueira": {"lat": -22.9450, "lon": -42.7100}
+def toggle_theme():
+    st.session_state.theme = 'dark' if st.session_state.theme == 'light' else 'light'
+
+# Definição das Paletas de Cores
+themes = {
+    "light": {
+        "bg": "#FFFFFF",          # Branco Absoluto
+        "card_bg": "#F3F4F6",     # Cinza muito claro
+        "text": "#000000",        # Preto Puro (Contraste Máximo)
+        "text_secondary": "#1F2937", 
+        "primary": "#BE185D",     # Magenta
+        "border": "#D1D5DB",      
+        "chart_colors": ["#BE185D", "#111827", "#B45309", "#047857", "#6D28D9"]
+    },
+    "dark": {
+        "bg": "#121212",          # Preto Quase Puro
+        "card_bg": "#1E1E1E",     
+        "text": "#FFFFFF",        
+        "text_secondary": "#E5E7EB",
+        "primary": "#FF69B4",     # Hot Pink
+        "border": "#374151",
+        "chart_colors": ["#FF69B4", "#FFD700", "#34D399", "#A78BFA", "#60A5FA"]
+    }
 }
 
+current_theme = themes[st.session_state.theme]
+
+# Injeção de CSS com !important para sobrescrever padrões do Streamlit
+st.markdown(f"""
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+    /* Reset Global */
+    html, body, .stApp {{
+        font-family: 'Poppins', sans-serif !important;
+        background-color: {current_theme['bg']} !important;
+        color: {current_theme['text']} !important;
+    }}
+    
+    /* FORÇA A COR DOS TEXTOS PARA EVITAR "INVISIBILIDADE" */
+    h1, h2, h3, h4, h5, h6, .stHeading {{
+        color: {current_theme['text']} !important;
+        font-weight: 700 !important;
+    }}
+    
+    p, div, span, label, li, .stMarkdown, .stText {{
+        color: {current_theme['text']} !important;
+    }}
+
+    /* Título com Gradiente */
+    h1 {{
+        background: linear-gradient(135deg, #BE185D 0%, #9D174D 100%);
+        -webkit-background-clip: text !important;
+        -webkit-text-fill-color: transparent !important;
+    }}
+    
+    /* Cards e Containers */
+    .metric-card, .filter-box {{
+        background-color: {current_theme['card_bg']} !important;
+        border: 1px solid {current_theme['border']} !important;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        padding: 20px;
+    }}
+
+    /* Inputs (Garante fundo visível) */
+    .stTextInput input, .stSelectbox div[data-baseweb="select"], .stNumberInput input, .stDateInput input {{
+        background-color: {current_theme['bg']} !important;
+        color: {current_theme['text']} !important;
+        border-color: {current_theme['border']} !important;
+    }}
+    
+    /* Botões */
+    .stButton>button {{
+        background: {current_theme['primary']} !important;
+        color: white !important;
+        border: none !important;
+        font-weight: bold !important;
+    }}
+    
+    /* Sidebar */
+    section[data-testid="stSidebar"] {{
+        background-color: {current_theme['card_bg']} !important;
+        border-right: 1px solid {current_theme['border']} !important;
+    }}
+</style>
+""", unsafe_allow_html=True)
+
+# ==============================================================================
+# 🔧 2. BACKEND E DADOS
+# ==============================================================================
+
+PASSWORD = "NAVE2026"
+SCOPES = ["https://www.googleapis.com/auth/spreadsheets", "https://www.googleapis.com/auth/drive"]
+
+# Coordenadas aproximadas dos bairros de Maricá para o Mapa
+COORDENADAS_BAIRROS = {
+    "Araçatiba": {"lat": -22.9275, "lon": -42.8098}, "Bambuí": {"lat": -22.9231, "lon": -42.7482},
+    "Barra de Maricá": {"lat": -22.9567, "lon": -42.8374}, "Boqueirão": {"lat": -22.9224, "lon": -42.8336},
+    "Centro": {"lat": -22.9194, "lon": -42.8183}, "Cordeirinho": {"lat": -22.9602, "lon": -42.7561},
+    "Inoã": {"lat": -22.9188, "lon": -42.8712}, "Itaipuaçu": {"lat": -22.9658, "lon": -42.9242},
+    "Itapeba": {"lat": -22.9080, "lon": -42.8300}, "Ponta Negra": {"lat": -22.9610, "lon": -42.6930},
+    "São José do Imbassaí": {"lat": -22.9380, "lon": -42.8440}, "Ubatiba": {"lat": -22.8800, "lon": -42.7900}
+}
 BAIRROS_MARICA = sorted(list(COORDENADAS_BAIRROS.keys()))
 
-# --- Funções Auxiliares ---
-
 def login():
-    st.markdown("### 🔒 Acesso Restrito")
-    senha = st.text_input("Digite a senha:", type="password")
-    if st.button("Entrar"):
+    st.markdown("### 🔒 Acesso Restrito NAVE")
+    senha = st.text_input("Digite a senha de acesso:", type="password")
+    if st.button("Logar no Sistema"):
         if senha == PASSWORD:
             st.session_state.password_correct = True
             st.rerun()
@@ -119,35 +140,30 @@ def get_spreadsheet_object():
         if "gsheets" in st.secrets:
             creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gsheets"], SCOPES)
         else:
-            # Fallback para desenvolvimento local
+            # Fallback para uso local
             creds = ServiceAccountCredentials.from_json_keyfile_name("rwilliammelo-7509a86c9df0.json", SCOPES)
-        
         client = gspread.authorize(creds)
-        # USANDO ID DA PLANILHA PARA EVITAR ERROS DE NOME
+        # ID da Planilha Google
         return client.open_by_key("1lKH8BrZ0LVi_tufuv9_kEeOhJGLueSQahh-6Ft1_idA")
     except Exception as e:
-        st.error(f"Erro de Conexão com Google Sheets: {e}")
-        st.info("Dica: Verifique se a planilha foi compartilhada com 'cafe-lab-matriculas@rwilliammelo.iam.gserviceaccount.com'")
+        st.error(f"Erro de Conexão: {e}")
         return None
-
-def setup_spreadsheet():
-    return get_spreadsheet_object()
 
 def save_data(sh, tab_name, data):
     try:
         worksheet = sh.worksheet(tab_name)
         worksheet.append_row(data)
     except Exception as e:
-        st.error(f"Erro ao salvar dados: {e}")
+        st.error(f"Erro ao salvar: {e}")
 
 def check_password():
     if "password_correct" not in st.session_state:
         st.session_state.password_correct = False
     return st.session_state.password_correct
-    st.cache_data.clear()
 
 @st.cache_data(ttl=60)
 def load_data_cached(tab_name):
+    # R: dados <- read_sheet("url", sheet = tab_name)
     sh = get_spreadsheet_object()
     if not sh: return pd.DataFrame()
     try:
@@ -157,26 +173,25 @@ def load_data_cached(tab_name):
     except:
         return pd.DataFrame()
 
+# Lógica do INSE (Indicador Nível Socioeconômico)
 def calcular_inse(escolaridade1, escolaridade2, bens, banheiros, qtd_pessoas):
+    # R: Lógica equivalente seria feita com `case_when` e somas ponderadas
     pontos = 0
     mapa_escolaridade = {
         "Não alfabetizado": 0, "Fundamental Incompleto": 1, "Fundamental Completo": 2,
         "Médio Incompleto": 3, "Médio Completo": 4, "Superior Incompleto": 5, "Superior Completo": 6
     }
     pontos += mapa_escolaridade.get(escolaridade1, 0) * 2
-    if escolaridade2:
-        pontos += mapa_escolaridade.get(escolaridade2, 0)
+    if escolaridade2: pontos += mapa_escolaridade.get(escolaridade2, 0)
     
-    if isinstance(bens, str):
-        lista_bens = bens.split(",")
-        pontos += len(lista_bens)
-    elif isinstance(bens, list):
-        pontos += len(bens)
+    if isinstance(bens, str): lista_bens = bens.split(",")
+    elif isinstance(bens, list): lista_bens = bens
+    else: lista_bens = []
         
+    pontos += len(lista_bens)
     pontos += int(banheiros) * 2
-    
-    if "Carro" in bens: pontos += 3
-    if "Computador/Notebook" in bens: pontos += 2
+    if "Carro" in lista_bens: pontos += 3
+    if "Computador/Notebook" in lista_bens: pontos += 2
     
     classificacao = ""
     if pontos <= 5: classificacao = "Baixo"
@@ -184,13 +199,20 @@ def calcular_inse(escolaridade1, escolaridade2, bens, banheiros, qtd_pessoas):
     elif pontos <= 18: classificacao = "Médio"
     elif pontos <= 25: classificacao = "Médio-Alto"
     else: classificacao = "Alto"
-    
     return pontos, classificacao
+
+def agrupar_raca(df):
+    """
+    Cria uma nova coluna agrupando Pretos e Pardos.
+    R: df <- df %>% mutate(raca_grupo = if_else(raca %in% c("Preta", "Parda"), "Negra (Preta+Parda)", raca))
+    """
+    if 'raca' not in df.columns: return df
+    df['raca_grupo'] = df['raca'].apply(lambda x: "Negra (Preta+Parda)" if x in ["Preta", "Parda"] else x)
+    return df
 
 def generate_fake_data(sh, qtd=10):
     fake = Faker('pt_BR')
-    rows_novas = []
-    rows_rematriculas = []
+    rows_novas, rows_rematriculas = [], []
     
     for _ in range(qtd):
         tipo = random.choice(["Nova", "Rematricula"])
@@ -202,366 +224,337 @@ def generate_fake_data(sh, qtd=10):
         qtd_pessoas = random.randint(2, 7)
         pontos, inse_class = calcular_inse(esc1, esc2, bens_lista, banheiros, qtd_pessoas)
         bairro_escolhido = random.choice(BAIRROS_MARICA)
+        raca_fake = random.choice(["Branca", "Preta", "Parda", "Indígena"])
 
         dados_comuns_inicio = [
             fake.date_time_this_year().strftime("%Y-%m-%d %H:%M:%S"),
             fake.name(), str(fake.date_of_birth(minimum_age=6, maximum_age=15)),
             fake.name(), str(fake.date_of_birth(minimum_age=25, maximum_age=60)),
-            random.choice(["Mãe", "Pai", "Avó", "Tio"]), fake.phone_number(), fake.email(),
+            random.choice(["Mãe", "Pai", "Avó"]), fake.phone_number(), fake.email(),
             fake.street_name(), fake.building_number(), bairro_escolhido, "Maricá", fake.postcode(),
             f"{random.randint(1, 9)}º Ano", random.choice(["Manhã", "Tarde"])
         ]
         
+        # IMPORTANTE: A ordem aqui deve bater EXATAMENTE com as colunas da planilha
         dados_comuns_fim = [
-            "Sim", random.choice(["Branca", "Preta", "Parda"]), random.choice(["Masculino", "Feminino"]),
+            random.choice(["Sim", "Não"]), raca_fake, random.choice(["Masculino", "Feminino"]),
             esc1, esc2, qtd_pessoas, banheiros, bens_str,
             random.choice(["0-10", "11-50", "Mais de 100"]), random.choice(["Sim", "Não"]),
             pontos, inse_class,
-            random.choice(["Sempre", "Às vezes"]), random.choice(["Sempre", "Às vezes"]),
-            random.choice(["Diariamente", "Semanalmente"]), random.choice(["Raramente", "Semanalmente"]),
-            random.choice(["Diariamente", "Semanalmente"])
+            random.choice(["Nunca", "Às vezes", "Sempre"]), # p1
+            random.choice(["Nunca", "Às vezes", "Sempre"]), # p2
+            random.choice(["Raramente", "Semanalmente", "Diariamente"]), # p3
+            random.choice(["Raramente", "Semanalmente", "Diariamente"]), # p4
+            random.choice(["Raramente", "Semanalmente", "Diariamente"])  # p5
         ]
-
+        
         if tipo == "Nova":
-            especifico = [f"Escola {fake.last_name()}"]
-            rows_novas.append(dados_comuns_inicio + especifico + dados_comuns_fim)
+            # Inclui coluna "escola_origem"
+            rows_novas.append(dados_comuns_inicio + [f"Escola {fake.last_name()}"] + dados_comuns_fim)
         else:
-            especifico = [f"7{random.randint(10, 99)}"]
-            rows_rematriculas.append(dados_comuns_inicio + especifico + dados_comuns_fim)
+            # Inclui coluna "turma_anterior"
+            rows_rematriculas.append(dados_comuns_inicio + [f"7{random.randint(10, 99)}"] + dados_comuns_fim)
             
     if rows_novas: sh.worksheet("Novas_Matriculas").append_rows(rows_novas)
     if rows_rematriculas: sh.worksheet("Rematriculas").append_rows(rows_rematriculas)
     st.cache_data.clear()
 
-# --- Interface Principal ---
+# ==============================================================================
+# 📊 3. FUNÇÕES DE VISUALIZAÇÃO (AUTOMATIZADAS)
+# ==============================================================================
+
+def gamified_card(title, value, icon, color_key):
+    color = current_theme.get(color_key, current_theme['primary'])
+    st.markdown(f"""
+    <div class="metric-card" style="border-left: 5px solid {color};">
+        <div style="display:flex; align-items:center; gap:10px; margin-bottom: 5px;">
+            <span style="font-size: 1.5rem;">{icon}</span>
+            <span style="font-size: 0.9rem; font-weight:600; text-transform: uppercase; color:{current_theme['text_secondary']}">{title}</span>
+        </div>
+        <p style="font-size: 2rem; font-weight: 800; margin:0; color: {current_theme['text']};">{value}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+def apply_theme_plotly(fig):
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='rgba(0,0,0,0)',
+        font={'color': current_theme['text'], 'family': 'Poppins, sans-serif'},
+        title_font={'size': 18, 'color': current_theme['text'], 'family': 'Poppins, sans-serif', 'weight': 700},
+        # CORREÇÃO: Forçar cor do título da legenda para preto/contraste alto
+        legend={
+            'font': {'color': current_theme['text']}, 
+            'bgcolor': 'rgba(0,0,0,0)',
+            'title': {'font': {'color': current_theme['text']}} 
+        },
+        xaxis={'tickfont': {'color': current_theme['text_secondary']}, 'title_font': {'color': current_theme['text']}, 'gridcolor': current_theme['border']},
+        yaxis={'tickfont': {'color': current_theme['text_secondary']}, 'title_font': {'color': current_theme['text']}, 'gridcolor': current_theme['border']}
+    )
+    return fig
+
+def plot_analise_completa(df, coluna, titulo, ordem=None):
+    """
+    Gera automaticamente:
+    1. Gráfico Univariado (Total - Contagem Absoluta)
+    2. Gráfico Bivariado (Perfil Racial - % dentro do grupo)
+    """
+    if coluna not in df.columns:
+        st.warning(f"Coluna {coluna} não encontrada nos dados.")
+        return
+
+    st.markdown(f"#### {titulo}")
+    
+    # Ordenação
+    if ordem:
+        cat_existentes = [x for x in ordem if x in df[coluna].unique()]
+        if cat_existentes:
+            df[coluna] = pd.Categorical(df[coluna], categories=cat_existentes, ordered=True)
+            df = df.sort_values(coluna)
+
+    c1, c2 = st.columns(2)
+    
+    # Gráfico 1: Univariado (Contagem Simples)
+    with c1:
+        df_uni = df[coluna].value_counts().reset_index()
+        df_uni.columns = [coluna, 'count']
+        fig1 = px.bar(df_uni, x=coluna, y='count', text_auto=True, title=f"Total Absoluto: {titulo}",
+                      color_discrete_sequence=[current_theme['chart_colors'][0]])
+        st.plotly_chart(apply_theme_plotly(fig1), use_container_width=True)
+
+    # Gráfico 2: Bivariado (Perfil Racial em %)
+    # Lógica R: df %>% group_by(raca, coluna) %>% summarise(n=n()) %>% mutate(pct = n/sum(n))
+    with c2:
+        # 1. Agrupa por Variável e Raça
+        df_bi = df.groupby([coluna, 'raca_grupo']).size().reset_index(name='count')
+        
+        # 2. Calcula o total de cada grupo racial (para normalizar)
+        total_por_raca = df_bi.groupby('raca_grupo')['count'].transform('sum')
+        
+        # 3. Calcula %
+        df_bi['percent'] = (df_bi['count'] / total_por_raca) * 100
+        
+        # 4. Cria label formatada: "25.5% (N=12)"
+        df_bi['label'] = df_bi.apply(lambda x: f"{x['percent']:.1f}% (N={x['count']})", axis=1)
+        
+        # 5. Plota usando % no Y, mas mostrando a label customizada
+        fig2 = px.bar(df_bi, x=coluna, y='percent', color='raca_grupo', barmode='group',
+                      text='label', # Usa o texto formatado
+                      title=f"Perfil por Raça (% dentro do grupo)",
+                      color_discrete_sequence=current_theme['chart_colors'])
+        
+        fig2.update_layout(yaxis_title="% do Grupo Racial")
+        st.plotly_chart(apply_theme_plotly(fig2), use_container_width=True)
+    
+    st.markdown("---")
+
+# ==============================================================================
+# 🚀 4. INTERFACE PRINCIPAL
+# ==============================================================================
 
 def main():
     if not check_password():
         login()
         return
 
-    st.sidebar.image("https://img.icons8.com/clouds/100/000000/rocket.png", width=100)
-    st.sidebar.title("Navegação")
-    page = st.sidebar.radio("Ir para:", ["Dashboard", "Formulário de Matrícula", "Administração"])
+    with st.sidebar:
+        col_img, col_btn = st.columns([2, 1])
+        with col_img:
+            st.image("https://img.icons8.com/clouds/100/000000/rocket.png", width=80)
+        with col_btn:
+            st.toggle('🌗', value=(st.session_state.theme == 'dark'), on_change=toggle_theme)
+        
+        st.title("Menu NAVE")
+        page = st.radio("Navegação:", ["Dashboard", "Formulário de Matrícula", "Administração"])
     
-    sh = setup_spreadsheet()
+    sh = get_spreadsheet_object()
     if not sh: return
 
     if page == "Dashboard":
         st.title("📊 Dashboard NAVE 2026")
-        st.markdown("Visão geral dos dados. Atualiza automaticamente após novos cadastros.")
-        
-        if st.button("🔄 Atualizar Agora"):
+        st.markdown(f"Modo: **{st.session_state.theme.title()}** | Sistema de Monitorização")
+
+        if st.button("🔄 Atualizar Dados"):
             st.cache_data.clear()
             st.rerun()
 
-        # Carrega dados
+        # Carregar e Unificar Dados
+        # R: bind_rows(df_novas, df_rematriculas)
         df_novas = load_data_cached("Novas_Matriculas")
         df_rematriculas = load_data_cached("Rematriculas")
         
         if not df_novas.empty: df_novas['tipo_matricula'] = 'Nova Matrícula'
         if not df_rematriculas.empty: df_rematriculas['tipo_matricula'] = 'Rematrícula'
-            
         df_total = pd.concat([df_novas, df_rematriculas], ignore_index=True)
         
+        # Aplicar agrupamento racial
+        df_total = agrupar_raca(df_total)
+
         if df_total.empty:
-            st.warning("Sem dados. Vá em Administração e gere dados de teste.")
+            st.warning("Sem dados. Gere dados de teste na aba Administração.")
         else:
-            # --- ÁREA DE FILTROS NO DASHBOARD ---
-            with st.expander("🔍 Filtros Avançados (Clique para expandir)", expanded=False):
+            # --- FILTROS ---
+            with st.expander("🔍 Filtros Avançados", expanded=False):
                 st.markdown('<div class="filter-box">', unsafe_allow_html=True)
                 f1, f2, f3 = st.columns(3)
-                
                 with f1:
-                    # Filtro Série
                     opcoes_serie = sorted(df_total['ano_serie'].astype(str).unique()) if 'ano_serie' in df_total.columns else []
-                    sel_serie = st.multiselect("Filtrar por Série:", options=opcoes_serie)
-                    
-                    # Filtro Turno
-                    opcoes_turno = sorted(df_total['turno'].astype(str).unique()) if 'turno' in df_total.columns else []
-                    sel_turno = st.multiselect("Filtrar por Turno:", options=opcoes_turno)
-
+                    sel_serie = st.multiselect("Série:", options=opcoes_serie)
                 with f2:
-                    # Filtro Bairro
                     opcoes_bairro = sorted(df_total['bairro'].astype(str).unique()) if 'bairro' in df_total.columns else []
-                    sel_bairro = st.multiselect("Filtrar por Bairro:", options=opcoes_bairro)
-                    
-                    # Filtro Raça
-                    opcoes_raca = sorted(df_total['raca'].astype(str).unique()) if 'raca' in df_total.columns else []
-                    sel_raca = st.multiselect("Filtrar por Raça:", options=opcoes_raca)
-
+                    sel_bairro = st.multiselect("Bairro:", options=opcoes_bairro)
                 with f3:
-                     # Filtro INSE
-                    if 'inse_classificacao' in df_total.columns:
-                        todas_opcoes = ["Baixo", "Médio-Baixo", "Médio", "Médio-Alto", "Alto"]
-                        existentes = df_total['inse_classificacao'].unique()
-                        opcoes_inse = [x for x in todas_opcoes if x in existentes]
-                        sel_inse = st.multiselect("Filtrar por INSE:", options=opcoes_inse)
-                    else:
-                        sel_inse = []
-                
+                    opcoes_inse = sorted(df_total['inse_classificacao'].astype(str).unique()) if 'inse_classificacao' in df_total.columns else []
+                    sel_inse = st.multiselect("INSE:", options=opcoes_inse)
                 st.markdown('</div>', unsafe_allow_html=True)
 
-            # --- APLICAÇÃO DOS FILTROS ---
+            # R: df_filtered <- df_total %>% filter(...)
             df_filtered = df_total.copy()
-            
-            if sel_serie:
-                df_filtered = df_filtered[df_filtered['ano_serie'].isin(sel_serie)]
-            if sel_turno:
-                df_filtered = df_filtered[df_filtered['turno'].isin(sel_turno)]
-            if sel_bairro:
-                df_filtered = df_filtered[df_filtered['bairro'].isin(sel_bairro)]
-            if sel_raca:
-                df_filtered = df_filtered[df_filtered['raca'].isin(sel_raca)]
-            if sel_inse:
-                df_filtered = df_filtered[df_filtered['inse_classificacao'].isin(sel_inse)]
+            if sel_serie: df_filtered = df_filtered[df_filtered['ano_serie'].isin(sel_serie)]
+            if sel_bairro: df_filtered = df_filtered[df_filtered['bairro'].isin(sel_bairro)]
+            if sel_inse: df_filtered = df_filtered[df_filtered['inse_classificacao'].isin(sel_inse)]
 
-            # --- EXIBIÇÃO DOS DADOS FILTRADOS ---
-            
             if df_filtered.empty:
-                st.warning("Nenhum dado encontrado com os filtros selecionados.")
+                st.warning("Filtro retornou vazio.")
             else:
-                # Métricas (Usando df_filtered)
-                col1, col2, col3, col4, col5 = st.columns(5)
-                col1.metric("Total Alunos", len(df_filtered))
-                col2.metric("Novas", len(df_filtered[df_filtered['tipo_matricula'] == 'Nova Matrícula']))
-                col3.metric("Rematrículas", len(df_filtered[df_filtered['tipo_matricula'] == 'Rematrícula']))
-                col4.metric("Bolsa Família", len(df_filtered[df_filtered['bolsa_familia'] == 'Sim']) if 'bolsa_familia' in df_filtered.columns else 0)
-                
+                # --- CARDS DE RESUMO ---
+                c1, c2, c3, c4 = st.columns(4)
+                with c1: gamified_card("Total Alunos", len(df_filtered), "🎓", 'primary')
+                with c2: gamified_card("Novas", len(df_filtered[df_filtered['tipo_matricula'] == 'Nova Matrícula']), "✨", 'primary')
+                with c3: gamified_card("Rematrículas", len(df_filtered[df_filtered['tipo_matricula'] == 'Rematrícula']), "🛡️", 'primary')
                 inse_moda = df_filtered['inse_classificacao'].mode()[0] if 'inse_classificacao' in df_filtered.columns and not df_filtered['inse_classificacao'].mode().empty else "N/A"
-                col5.metric("INSE Predominante", inse_moda)
+                with c4: gamified_card("Nível INSE Típico", inse_moda, "📊", 'primary')
 
                 st.markdown("---")
-                
-                # Abas do Dashboard (Usando df_filtered)
-                tab1, tab2, tab3, tab4 = st.tabs(["📈 Demografia & Escola", "💰 Socioeconômico (INSE)", "👪 Práticas Familiares", "🗺️ Mapa (Maricá)"])
-                
+
+                # --- ABAS DE ANÁLISE ---
+                tab1, tab2, tab3, tab4, tab5 = st.tabs(["📈 Visão Geral", "💰 Socioeconômico", "🏠 Estrutura & Bens", "👨‍👩‍👧‍👦 Práticas Familiares", "🗺️ Mapa"])
+
                 with tab1:
-                    c1, c2 = st.columns(2)
-                    with c1:
-                        df_serie = df_filtered.groupby(['ano_serie', 'tipo_matricula']).size().reset_index(name='count')
-                        fig_serie = px.bar(df_serie, x='ano_serie', y='count', color='tipo_matricula',
-                            title="Total de Alunos por Série", text_auto=True, color_discrete_sequence=px.colors.qualitative.Pastel)
-                        st.plotly_chart(fig_serie, use_container_width=True)
-                    with c2:
-                        df_turno = df_filtered['turno'].value_counts().reset_index()
-                        df_turno.columns = ['turno', 'count']
-                        fig_turno = px.bar(df_turno, x='turno', y='count', title="Alunos por Turno", text_auto=True,
-                            color='turno', color_discrete_sequence=px.colors.qualitative.Set3)
-                        st.plotly_chart(fig_turno, use_container_width=True)
-                    
-                    c3, c4 = st.columns(2)
-                    with c3:
-                        if 'bairro' in df_filtered.columns:
-                            bairros_count = df_filtered['bairro'].value_counts().reset_index().head(10)
-                            bairros_count.columns = ['bairro', 'count']
-                            fig_bairro = px.bar(bairros_count, x='count', y='bairro', orientation='h', 
-                                title="Top 10 Bairros (Maricá)", text_auto=True, color='count', color_continuous_scale='Oranges')
-                            st.plotly_chart(fig_bairro, use_container_width=True)
-                    with c4:
-                        if 'raca' in df_filtered.columns:
-                            df_raca = df_filtered['raca'].value_counts().reset_index()
-                            df_raca.columns = ['raca', 'count']
-                            fig_raca = px.bar(df_raca, x='raca', y='count', title="Autodeclaração de Cor/Raça", 
-                                text_auto=True, color='raca', color_discrete_sequence=px.colors.qualitative.Safe)
-                            st.plotly_chart(fig_raca, use_container_width=True)
+                    # Gráficos Univariados e Bivariados por Raça
+                    plot_analise_completa(df_filtered, "ano_serie", "Matrículas por Série", 
+                                          ordem=[f"{i}º Ano" for i in range(1,10)])
+                    plot_analise_completa(df_filtered, "turno", "Distribuição por Turno")
 
                 with tab2:
-                    c1, c2 = st.columns(2)
-                    with c1:
-                        if 'inse_classificacao' in df_filtered.columns:
-                            ordem_inse = ["Baixo", "Médio-Baixo", "Médio", "Médio-Alto", "Alto"]
-                            df_filtered['inse_classificacao'] = pd.Categorical(df_filtered['inse_classificacao'], categories=ordem_inse, ordered=True)
-                            fig_inse = px.histogram(df_filtered.sort_values('inse_classificacao'), x='inse_classificacao', 
-                                title="Distribuição de Nível Socioeconômico", color='inse_classificacao', text_auto=True,
-                                color_discrete_sequence=px.colors.sequential.Viridis)
-                            st.plotly_chart(fig_inse, use_container_width=True)
-                    with c2:
-                        if 'escolaridade_resp1' in df_filtered.columns:
-                            df_esc = df_filtered['escolaridade_resp1'].value_counts().reset_index()
-                            df_esc.columns = ['escolaridade', 'count']
-                            fig_esc = px.bar(df_esc, x='escolaridade', y='count', title="Escolaridade do Responsável 1",
-                                text_auto=True, color='escolaridade')
-                            fig_esc.update_xaxes(tickangle=45)
-                            st.plotly_chart(fig_esc, use_container_width=True)
+                    plot_analise_completa(df_filtered, "inse_classificacao", "INSE (Nível Socioeconômico)", 
+                                          ordem=["Baixo", "Médio-Baixo", "Médio", "Médio-Alto", "Alto"])
+                    plot_analise_completa(df_filtered, "bolsa_familia", "Bolsa Família")
+                    plot_analise_completa(df_filtered, "escolaridade_resp1", "Escolaridade Resp. 1",
+                                          ordem=["Não alfabetizado", "Fundamental Incompleto", "Fundamental Completo", "Médio Incompleto", "Médio Completo", "Superior Incompleto", "Superior Completo"])
 
                 with tab3:
-                    cols = ['pratica_local_estudo', 'pratica_horario_fixo', 'pratica_acompanhamento_pais', 'pratica_leitura_compartilhada', 'pratica_conversa_escola']
-                    for col in cols:
-                        if col in df_filtered.columns:
-                            fig = px.histogram(df_filtered, x=col, title=col.replace('pratica_', '').replace('_', ' ').title(), color=col, text_auto=True)
-                            st.plotly_chart(fig, use_container_width=True)
+                    # R: Usando 'qtd_pessoas_domicilio' que é o nome correto da coluna
+                    if 'qtd_pessoas_domicilio' in df_filtered.columns:
+                        plot_analise_completa(df_filtered, "qtd_pessoas_domicilio", "Pessoas no Domicílio")
+                    
+                    if 'livros_qtd' in df_filtered.columns:
+                        plot_analise_completa(df_filtered, "livros_qtd", "Quantidade de Livros em Casa",
+                                              ordem=["0-10", "11-50", "Mais de 100"]) # Ajuste conforme dados
 
                 with tab4:
+                    st.info("Nota: Gere novos dados para visualizar estas informações corretamente.")
+                    cols_praticas = {
+                        'pratica_local_estudo': 'Local adequado para estudo?', 
+                        'pratica_horario_fixo': 'Tem horário fixo?', 
+                        'pratica_acompanhamento_pais': 'Pais ajudam?', 
+                        'pratica_leitura_compartilhada': 'Leitura em família?', 
+                        'pratica_conversa_escola': 'Conversam sobre escola?'
+                    }
+                    ordem_freq = ["Nunca", "Raramente", "Às vezes", "Frequentemente", "Sempre", "Semanalmente", "Diariamente"]
+                    
+                    for col_db, pergunta in cols_praticas.items():
+                        plot_analise_completa(df_filtered, col_db, pergunta, ordem=ordem_freq)
+
+                with tab5:
                     if 'bairro' in df_filtered.columns:
+                        # R: count(bairro) %>% left_join(lat_long)
                         df_mapa = df_filtered['bairro'].value_counts().reset_index()
                         df_mapa.columns = ['bairro', 'count']
                         df_mapa['lat'] = df_mapa['bairro'].apply(lambda x: COORDENADAS_BAIRROS.get(x, {}).get('lat'))
                         df_mapa['lon'] = df_mapa['bairro'].apply(lambda x: COORDENADAS_BAIRROS.get(x, {}).get('lon'))
                         df_mapa = df_mapa.dropna(subset=['lat', 'lon'])
-                        
                         if not df_mapa.empty:
                             fig_map = px.scatter_mapbox(
                                 df_mapa, lat="lat", lon="lon", hover_name="bairro", size="count", color="count",
-                                color_continuous_scale="Viridis", size_max=40, zoom=10, mapbox_style="open-street-map",
-                                title="Concentração de Alunos por Bairro (Filtrado)"
+                                color_continuous_scale=["#FFC0CB", "#BE185D", "#4B0082"], size_max=40, zoom=10.5, mapbox_style="open-street-map",
+                                title="Geolocalização (Centróide)"
                             )
-                            st.plotly_chart(fig_map, use_container_width=True)
-                        else:
-                             st.info("Nenhum dado geográfico para os filtros selecionados.")
-                    else:
-                        st.warning("Sem dados de bairro.")
+                            st.plotly_chart(apply_theme_plotly(fig_map), use_container_width=True)
 
     elif page == "Formulário de Matrícula":
-        st.title("📝 Ficha de Matrícula 2026")
-        
+        st.title("📝 Nova Matrícula")
         with st.container():
-            tipo_matricula = st.radio("", ["Nova Matrícula", "Rematrícula"], horizontal=True)
-        
-        st.divider()
-
+            st.markdown('<div class="filter-box">', unsafe_allow_html=True)
+            tipo_matricula = st.radio("Tipo:", ["Nova Matrícula", "Rematrícula"], horizontal=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+        st.write("") 
         with st.form("matricula_form"):
-            st.subheader("1. Identificação")
             c1, c2 = st.columns(2)
-            nm_estudante = c1.text_input("Nome do Estudante")
-            dt_nasc_estudante = c2.date_input("Nascimento do Estudante", min_value=datetime(2000, 1, 1))
-            c3, c4 = st.columns(2)
-            nm_responsavel = c3.text_input("Nome do Responsável")
-            dt_nasc_responsavel = c4.date_input("Nascimento do Responsável", min_value=datetime(1950, 1, 1))
-            c5, c6, c7 = st.columns(3)
-            parentesco = c5.selectbox("Parentesco", ["Mãe", "Pai", "Avó/Avô", "Tio/Tia", "Outro"])
-            telefone = c6.text_input("Celular/WhatsApp")
-            email = c7.text_input("E-mail")
-
-            st.subheader("2. Endereço")
+            nm_estudante = c1.text_input("Nome Completo")
+            dt_nasc = c2.date_input("Data de Nascimento", min_value=datetime(2000, 1, 1))
             ce1, ce2 = st.columns([3, 1])
-            logradouro = ce1.text_input("Logradouro")
-            numero = ce2.text_input("Número")
-            ce3, ce4, ce5 = st.columns(3)
-            bairro_selecionado = ce3.selectbox("Bairro", BAIRROS_MARICA + ["Outro"])
-            bairro_final = bairro_selecionado if bairro_selecionado != "Outro" else ce3.text_input("Nome do bairro")
-            municipio = ce4.text_input("Município", value="Maricá", disabled=True)
-            cep = ce5.text_input("CEP")
-
-            st.subheader("3. Dados Escolares")
-            ces1, ces2 = st.columns(2)
-            ano_serie = ces1.selectbox("Ano/Série (2026)", [f"{i}º Ano" for i in range(1, 10)])
-            turno = ces2.radio("Turno", ["Manhã", "Tarde"], horizontal=True)
-            escola_origem = ""
-            turma_anterior = ""
-            if tipo_matricula == "Nova Matrícula": escola_origem = st.text_input("Escola de Origem")
-            else: turma_anterior = st.text_input("Turma Anterior")
-
-            st.subheader("4. Perfil Socioeconômico (INSE)")
-            ci1, ci2 = st.columns(2)
-            raca = ci1.selectbox("Cor/Raça", ["Branca", "Preta", "Parda", "Amarela", "Indígena", "Não declarado"])
-            genero = ci2.selectbox("Gênero", ["Masculino", "Feminino", "Outro"])
-            ci3, ci4 = st.columns(2)
-            escolaridade_resp1 = ci3.selectbox("Escolaridade Resp. 1", ["Não alfabetizado", "Fundamental Incompleto", "Fundamental Completo", "Médio Incompleto", "Médio Completo", "Superior Incompleto", "Superior Completo"])
-            escolaridade_resp2 = ci4.selectbox("Escolaridade Resp. 2", ["", "Não alfabetizado", "Fundamental Incompleto", "Fundamental Completo", "Médio Incompleto", "Médio Completo", "Superior Incompleto", "Superior Completo"])
-            ci5, ci6 = st.columns(2)
-            qtd_pessoas = ci5.number_input("Pessoas na casa", 1, 20)
-            qtd_banheiros = ci6.number_input("Banheiros na casa", 0, 10)
-            bens = st.multiselect("Bens no Domicílio", ["TV", "Geladeira", "Máquina de Lavar", "Carro", "Computador/Notebook", "Internet Wifi", "Ar Condicionado", "Microondas"])
-            livros = st.selectbox("Livros em casa", ["0-10", "11-50", "51-100", "Mais de 100"])
+            logradouro = ce1.text_input("Rua/Logradouro")
+            numero = ce2.text_input("Nº")
+            ce3, ce4 = st.columns(2)
+            bairro_sel = ce3.selectbox("Bairro", BAIRROS_MARICA + ["Outro"])
+            bairro_final = bairro_sel if bairro_sel != "Outro" else ce3.text_input("Digite o Bairro")
+            cep = ce4.text_input("CEP")
+            serie = st.selectbox("Série 2026", [f"{i}º Ano" for i in range(1, 10)])
+            turno = st.radio("Turno", ["Manhã", "Tarde"], horizontal=True)
+            complemento = st.text_input("Escola Anterior") if tipo_matricula == "Nova Matrícula" else st.text_input("Turma Anterior")
+            
+            st.markdown("### Socioeconômico e Familiar")
+            raca = st.selectbox("Cor/Raça", ["Parda", "Preta", "Branca", "Indígena", "Amarela"])
+            esc1 = st.selectbox("Escolaridade Responsável 1", ["Fundamental Incompleto", "Médio Completo", "Superior Completo"])
+            esc2 = st.selectbox("Escolaridade Responsável 2", ["", "Fundamental Incompleto", "Médio Completo", "Superior Completo"])
+            bens = st.multiselect("Bens", ["TV", "Carro", "Computador/Notebook", "Internet Wifi", "Ar Condicionado"])
+            banheiros = st.number_input("Banheiros", 1, 5)
+            pessoas = st.number_input("Pessoas na casa", 1, 15)
+            livros = st.selectbox("Livros em casa", ["0-10", "11-50", "Mais de 100"])
             bolsa = st.radio("Recebe Bolsa Família?", ["Sim", "Não"], horizontal=True)
-
-            st.subheader("5. Práticas Familiares")
+            
             p1 = st.select_slider("Local adequado para estudar?", ["Nunca", "Raramente", "Às vezes", "Frequentemente", "Sempre"])
             p2 = st.select_slider("Horário fixo de estudo?", ["Nunca", "Raramente", "Às vezes", "Frequentemente", "Sempre"])
             p3 = st.selectbox("Pais ajudam nas tarefas?", ["Nunca", "Raramente", "Semanalmente", "Diariamente"])
             p4 = st.selectbox("Leitura em família?", ["Nunca", "Raramente", "Semanalmente", "Diariamente"])
             p5 = st.selectbox("Conversam sobre a escola?", ["Nunca", "Raramente", "Semanalmente", "Diariamente"])
 
-            st.divider()
-            consentimento = st.checkbox("Declaro que as informações são verdadeiras.")
-            submitted = st.form_submit_button("✅ Confirmar Matrícula", use_container_width=True)
-
+            submitted = st.form_submit_button("✅ Registrar Aluno")
             if submitted:
-                if not consentimento: st.warning("Aceite o termo.")
-                elif not nm_estudante: st.error("Nome obrigatório.")
+                if not nm_estudante:
+                    st.error("Nome é obrigatório!")
                 else:
-                    pontos, inse_nivel = calcular_inse(escolaridade_resp1, escolaridade_resp2, bens, qtd_banheiros, qtd_pessoas)
-                    dados_inicio = [datetime.now().strftime("%Y-%m-%d %H:%M:%S"), nm_estudante, str(dt_nasc_estudante), nm_responsavel, str(dt_nasc_responsavel), parentesco, telefone, email, logradouro, numero, bairro_final, municipio, cep, ano_serie, turno]
-                    dados_fim = ["Sim", raca, genero, escolaridade_resp1, escolaridade_resp2, qtd_pessoas, qtd_banheiros, ", ".join(bens), livros, bolsa, pontos, inse_nivel, p1, p2, p3, p4, p5]
-                    
-                    if tipo_matricula == "Nova Matrícula":
-                        dados_finais = dados_inicio + [escola_origem] + dados_fim
-                        tab = "Novas_Matriculas"
-                    else:
-                        dados_finais = dados_inicio + [turma_anterior] + dados_fim
-                        tab = "Rematriculas"
-                    
-                    with st.spinner("Salvando..."):
-                        save_data(sh, tab, dados_finais)
-                        st.success(f"Salvo com sucesso! INSE Estimado: {inse_nivel}")
-                        st.balloons()
+                    pontos, inse_nivel = calcular_inse(esc1, esc2, bens, banheiros, pessoas)
+                    # Cria lista de dados garantindo ordem correta para o Sheets
+                    dados = [
+                        datetime.now().strftime("%Y-%m-%d %H:%M:%S"), nm_estudante, str(dt_nasc), 
+                        "Responsável Fake", "Parentesco Fake", "Tel Fake", "Email Fake", 
+                        logradouro, numero, bairro_final, "Maricá", cep, 
+                        serie, turno, complemento, "Sim", 
+                        raca, "Gen Fake", esc1, esc2, 
+                        pessoas, banheiros, ", ".join(bens), 
+                        livros, bolsa, pontos, inse_nivel, 
+                        p1, p2, p3, p4, p5
+                    ]
+                    target = "Novas_Matriculas" if tipo_matricula == "Nova Matrícula" else "Rematriculas"
+                    save_data(sh, target, dados)
+                    st.success(f"Matrícula realizada! INSE: {inse_nivel}")
 
     elif page == "Administração":
-        st.title("⚙️ Administração")
-        
-        # --- ÁREA DE FILTROS DE ADMIN ---
-        st.markdown("### 🔍 Filtros da Tabela")
-        with st.expander("Opções de Filtragem", expanded=True):
-            st.markdown('<div class="filter-box">', unsafe_allow_html=True)
-            col_f1, col_f2, col_f3, col_f4 = st.columns(4)
-            
-            # Carregar dados primeiro para pegar as opções
-            tabela_selecionada = st.selectbox("Selecione a Tabela Base:", ["Novas_Matriculas", "Rematriculas"])
-            df_admin = load_data_cached(tabela_selecionada)
-            
-            df_admin_filtrado = df_admin.copy()
-
-            if not df_admin.empty:
-                with col_f1:
-                    # Filtro Série Admin
-                    opts_serie_adm = sorted(df_admin['ano_serie'].astype(str).unique()) if 'ano_serie' in df_admin.columns else []
-                    sel_serie_adm = st.multiselect("Série", options=opts_serie_adm, key="adm_serie")
-                with col_f2:
-                     # Filtro Turno Admin
-                    opts_turno_adm = sorted(df_admin['turno'].astype(str).unique()) if 'turno' in df_admin.columns else []
-                    sel_turno_adm = st.multiselect("Turno", options=opts_turno_adm, key="adm_turno")
-                with col_f3:
-                    # Filtro Bairro Admin
-                    opts_bairro_adm = sorted(df_admin['bairro'].astype(str).unique()) if 'bairro' in df_admin.columns else []
-                    sel_bairro_adm = st.multiselect("Bairro", options=opts_bairro_adm, key="adm_bairro")
-                with col_f4:
-                     # Filtro INSE Admin
-                    if 'inse_classificacao' in df_admin.columns:
-                         opts_inse_adm = [x for x in ["Baixo", "Médio-Baixo", "Médio", "Médio-Alto", "Alto"] if x in df_admin['inse_classificacao'].unique()]
-                         sel_inse_adm = st.multiselect("INSE", options=opts_inse_adm, key="adm_inse")
-                    else:
-                         sel_inse_adm = []
-                
-                # Aplicar filtros Admin
-                if sel_serie_adm: df_admin_filtrado = df_admin_filtrado[df_admin_filtrado['ano_serie'].isin(sel_serie_adm)]
-                if sel_turno_adm: df_admin_filtrado = df_admin_filtrado[df_admin_filtrado['turno'].isin(sel_turno_adm)]
-                if sel_bairro_adm: df_admin_filtrado = df_admin_filtrado[df_admin_filtrado['bairro'].isin(sel_bairro_adm)]
-                if sel_inse_adm: df_admin_filtrado = df_admin_filtrado[df_admin_filtrado['inse_classificacao'].isin(sel_inse_adm)]
-
-            st.markdown('</div>', unsafe_allow_html=True)
-
-        if not df_admin_filtrado.empty:
-            st.info(f"Exibindo {len(df_admin_filtrado)} registros filtrados.")
-            st.data_editor(
-                df_admin_filtrado, 
-                num_rows="dynamic", 
-                use_container_width=True,
-                column_config={
-                    "inse_pontos": st.column_config.NumberColumn("Pontos INSE", format="%d pts"),
-                    "inse_classificacao": st.column_config.TextColumn("Faixa INSE", width="medium")
-                }
-            )
-            st.download_button("Baixar CSV Filtrado", df_admin_filtrado.to_csv(index=False).encode('utf-8'), "dados_filtrados.csv")
-        else:
-            st.warning("Nenhum dado para exibir.")
-        
+        st.title("⚙️ Painel Admin")
+        tab_admin = st.radio("Tabela:", ["Novas_Matriculas", "Rematriculas"], horizontal=True)
+        df_admin = load_data_cached(tab_admin)
+        if not df_admin.empty:
+            st.markdown(f"### Visualizando: {tab_admin} ({len(df_admin)} registros)")
+            st.data_editor(df_admin, use_container_width=True, num_rows="dynamic")
+            csv = df_admin.to_csv(index=False).encode('utf-8')
+            st.download_button("⬇️ Baixar CSV", csv, f"{tab_admin}.csv", "text/csv")
         st.divider()
-        qtd = st.number_input("Qtd Simulação", 1, 100, 10)
-        if st.button("Gerar Dados Fake"):
-            with st.spinner("Gerando..."):
-                generate_fake_data(sh, qtd)
-                st.success("Feito!")
+        st.subheader("🛠️ Ferramentas de Teste")
+        if st.button("🎲 Gerar 10 Alunos Fakes"):
+            with st.spinner("Gerando dados..."):
+                generate_fake_data(sh, 10)
+            st.success("Dados gerados com sucesso!")
 
 if __name__ == "__main__":
     main()
