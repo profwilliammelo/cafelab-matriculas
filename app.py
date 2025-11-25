@@ -9,7 +9,7 @@ import random
 import os
 
 # --- Configuração da Página ---
-st.set_page_config(layout="wide", page_title="NAVE LÚCIO THOME ... a decolar!| Dashboard", page_icon="🚀")
+st.set_page_config(layout="wide", page_title="NAVE LÚCIO THOME | Dashboard", page_icon="🚀")
 
 # ==============================================================================
 # 🎨 1. TEMA E CSS (ALTO CONTRASTE NUCLEAR + GAMIFICAÇÃO DE FORMULÁRIO)
