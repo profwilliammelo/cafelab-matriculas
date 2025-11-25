@@ -9,15 +9,15 @@ import random
 import os
 
 # --- Configuração da Página ---
-st.set_page_config(layout="wide", page_title="NAVE 2026 | Dashboard", page_icon="🚀")
+st.set_page_config(layout="wide", page_title="NAVE LÚCIO THOME ... a decolar!| Dashboard", page_icon="🚀")
 
 # ==============================================================================
-# 🎨 1. TEMA E CSS (ALTO CONTRASTE NUCLEAR)
+# 🎨 1. TEMA E CSS (ALTO CONTRASTE NUCLEAR + GAMIFICAÇÃO DE FORMULÁRIO)
 # ==============================================================================
 # Este bloco garante que textos sejam sempre visíveis, independente do tema do navegador.
 
 if 'theme' not in st.session_state:
-    st.session_state.theme = 'light'
+    st.session_state.theme = 'dark'  # DEFINIDO COMO PADRÃO: DARK
 
 def toggle_theme():
     st.session_state.theme = 'dark' if st.session_state.theme == 'light' else 'light'
@@ -30,8 +30,12 @@ themes = {
         "text": "#000000",        # Preto Puro (Contraste Máximo)
         "text_secondary": "#1F2937", 
         "primary": "#BE185D",     # Magenta
+        "secondary": "#9D174D",   # Bordô
         "border": "#D1D5DB",      
-        "chart_colors": ["#BE185D", "#111827", "#B45309", "#047857", "#6D28D9"]
+        "chart_colors": ["#BE185D", "#111827", "#B45309", "#047857", "#6D28D9"],
+        "hover_bg": "#FCE7F3",    # Cor de fundo ao passar o mouse
+        "input_bg": "#FFFFFF",    # Fundo explícito para inputs
+        "expander_header": "#E5E7EB" # Cor de fundo do cabeçalho do expander
     },
     "dark": {
         "bg": "#121212",          # Preto Quase Puro
@@ -39,8 +43,12 @@ themes = {
         "text": "#FFFFFF",        
         "text_secondary": "#E5E7EB",
         "primary": "#FF69B4",     # Hot Pink
+        "secondary": "#FFD700",   # Gold
         "border": "#374151",
-        "chart_colors": ["#FF69B4", "#FFD700", "#34D399", "#A78BFA", "#60A5FA"]
+        "chart_colors": ["#FF69B4", "#FFD700", "#34D399", "#A78BFA", "#60A5FA"],
+        "hover_bg": "#374151",    # Cor de fundo ao passar o mouse
+        "input_bg": "#2D2D2D",    # Fundo explícito para inputs
+        "expander_header": "#374151" # Cor de fundo do cabeçalho do expander
     }
 }
 
@@ -84,26 +92,108 @@ st.markdown(f"""
         padding: 20px;
     }}
 
-    /* Inputs (Garante fundo visível) */
-    .stTextInput input, .stSelectbox div[data-baseweb="select"], .stNumberInput input, .stDateInput input {{
-        background-color: {current_theme['bg']} !important;
+    /* --- CORREÇÃO CRÍTICA: INPUTS, SELECTBOX E MULTISELECT --- */
+    
+    /* Input de Texto e Números */
+    .stTextInput input, .stNumberInput input, .stDateInput input {{
+        background-color: {current_theme['input_bg']} !important;
+        color: {current_theme['text']} !important;
+        border: 1px solid {current_theme['border']} !important;
+    }}
+
+    /* Selectbox e Multiselect (O container fechado) */
+    div[data-baseweb="select"] > div {{
+        background-color: {current_theme['input_bg']} !important;
         color: {current_theme['text']} !important;
         border-color: {current_theme['border']} !important;
     }}
     
-    /* Botões */
-    .stButton>button {{
-        background: {current_theme['primary']} !important;
+    /* Texto dentro do Selectbox */
+    div[data-baseweb="select"] span {{
+        color: {current_theme['text']} !important;
+    }}
+    
+    /* Ícone de seta do dropdown */
+    div[data-baseweb="select"] svg {{
+        fill: {current_theme['text']} !important;
+    }}
+
+    /* Menu Dropdown (Quando aberto - As opções) */
+    ul[data-baseweb="menu"] {{
+        background-color: {current_theme['card_bg']} !important;
+    }}
+    
+    /* Itens da lista do Dropdown */
+    li[data-baseweb="option"] {{
+        color: {current_theme['text']} !important;
+    }}
+
+    /* --- CORREÇÃO CRÍTICA: BOTÃO DE REGISTRAR --- */
+    
+    /* Força o background do botão no estado normal */
+    div[data-testid="stButton"] > button {{
+        background-color: {current_theme['primary']} !important;
         color: white !important;
         border: none !important;
         font-weight: bold !important;
+        opacity: 1 !important; /* Garante que não fique transparente */
+        box-shadow: 0 4px 6px rgba(0,0,0,0.2) !important;
     }}
     
+    /* Garante que o texto DENTRO do botão seja branco */
+    div[data-testid="stButton"] > button p {{
+        color: white !important;
+    }}
+    
+    /* Estado Hover do botão */
+    div[data-testid="stButton"] > button:hover {{
+        background-color: {current_theme['secondary']} !important;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 8px rgba(0,0,0,0.3) !important;
+    }}
+    
+    /* --- CORREÇÃO CRÍTICA: EXPANDERS (SUBTÍTULOS) --- */
+    
+    /* Cabeçalho do Expander (A "faixa") */
+    div[data-testid="stExpander"] > details > summary {{
+        background-color: {current_theme['expander_header']} !important;
+        border: 1px solid {current_theme['border']} !important;
+        border-radius: 8px;
+        color: {current_theme['text']} !important;
+    }}
+    
+    /* Texto dentro do cabeçalho do Expander */
+    div[data-testid="stExpander"] > details > summary span {{
+        color: {current_theme['text']} !important;
+        font-weight: 600 !important;
+    }}
+    
+    /* Hover no Expander */
+    div[data-testid="stExpander"] > details > summary:hover {{
+        background-color: {current_theme['hover_bg']} !important;
+        color: {current_theme['primary']} !important;
+    }}
+    
+    div[data-testid="stExpander"] > details > summary:hover span {{
+        color: {current_theme['primary']} !important;
+    }}
+    
+    /* Conteúdo interno do Expander */
+    div[data-testid="stExpander"] > details > div {{
+        border-left: 2px solid {current_theme['border']};
+        border-right: 2px solid {current_theme['border']};
+        border-bottom: 2px solid {current_theme['border']};
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        padding: 15px;
+    }}
+
     /* Sidebar */
     section[data-testid="stSidebar"] {{
         background-color: {current_theme['card_bg']} !important;
         border-right: 1px solid {current_theme['border']} !important;
     }}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -179,7 +269,8 @@ def calcular_inse(escolaridade1, escolaridade2, bens, banheiros, qtd_pessoas):
     pontos = 0
     mapa_escolaridade = {
         "Não alfabetizado": 0, "Fundamental Incompleto": 1, "Fundamental Completo": 2,
-        "Médio Incompleto": 3, "Médio Completo": 4, "Superior Incompleto": 5, "Superior Completo": 6
+        "Médio Incompleto": 3, "Médio Completo": 4, "Superior Incompleto": 5, "Superior Completo": 6,
+        "Não informado": 0 # Tratando a opção "sem resposta"
     }
     pontos += mapa_escolaridade.get(escolaridade1, 0) * 2
     if escolaridade2: pontos += mapa_escolaridade.get(escolaridade2, 0)
@@ -285,7 +376,7 @@ def apply_theme_plotly(fig):
         legend={
             'font': {'color': current_theme['text']}, 
             'bgcolor': 'rgba(0,0,0,0)',
-            'title': {'font': {'color': current_theme['text']}} 
+            'title': {'font': {'color': current_theme['text']}}  # Garante título da legenda visível
         },
         xaxis={'tickfont': {'color': current_theme['text_secondary']}, 'title_font': {'color': current_theme['text']}, 'gridcolor': current_theme['border']},
         yaxis={'tickfont': {'color': current_theme['text_secondary']}, 'title_font': {'color': current_theme['text']}, 'gridcolor': current_theme['border']}
@@ -306,6 +397,10 @@ def plot_analise_completa(df, coluna, titulo, ordem=None):
     
     # Ordenação
     if ordem:
+        # Adiciona "Não informado" se ele existir nos dados, mas não estiver na ordem padrão
+        if "Não informado" in df[coluna].unique() and "Não informado" not in ordem:
+             ordem.append("Não informado")
+
         cat_existentes = [x for x in ordem if x in df[coluna].unique()]
         if cat_existentes:
             df[coluna] = pd.Categorical(df[coluna], categories=cat_existentes, ordered=True)
@@ -322,12 +417,15 @@ def plot_analise_completa(df, coluna, titulo, ordem=None):
         st.plotly_chart(apply_theme_plotly(fig1), use_container_width=True)
 
     # Gráfico 2: Bivariado (Perfil Racial em %)
-    # Lógica R: df %>% group_by(raca, coluna) %>% summarise(n=n()) %>% mutate(pct = n/sum(n))
+    # Lógica R equivalente (dplyr): 
+    # df %>% group_by(raca_grupo) %>% count(coluna) %>% mutate(percent = n / sum(n))
+    # Ou seja: calculamos o percentual da categoria DENTRO de cada raça (soma 100% por raça)
     with c2:
-        # 1. Agrupa por Variável e Raça
+        # 1. Agrupa por Variável e Raça (contagem bruta)
         df_bi = df.groupby([coluna, 'raca_grupo']).size().reset_index(name='count')
         
-        # 2. Calcula o total de cada grupo racial (para normalizar)
+        # 2. Calcula o total de N de cada grupo racial (Denominador)
+        # Isso garante que estamos calculando % dentro do grupo, não do total geral
         total_por_raca = df_bi.groupby('raca_grupo')['count'].transform('sum')
         
         # 3. Calcula %
@@ -336,9 +434,9 @@ def plot_analise_completa(df, coluna, titulo, ordem=None):
         # 4. Cria label formatada: "25.5% (N=12)"
         df_bi['label'] = df_bi.apply(lambda x: f"{x['percent']:.1f}% (N={x['count']})", axis=1)
         
-        # 5. Plota usando % no Y, mas mostrando a label customizada
+        # 5. Plota usando % no Y, mas mostrando a label customizada e o eixo em %
         fig2 = px.bar(df_bi, x=coluna, y='percent', color='raca_grupo', barmode='group',
-                      text='label', # Usa o texto formatado
+                      text='label', # Usa o texto formatado com % e N
                       title=f"Perfil por Raça (% dentro do grupo)",
                       color_discrete_sequence=current_theme['chart_colors'])
         
@@ -370,7 +468,7 @@ def main():
     if not sh: return
 
     if page == "Dashboard":
-        st.title("📊 Dashboard NAVE 2026")
+        st.title("🚀 NAVE LÚCIO THOME: ESTUDANTES A DECOLAR")
         st.markdown(f"Modo: **{st.session_state.theme.title()}** | Sistema de Monitorização")
 
         if st.button("🔄 Atualizar Dados"):
@@ -440,7 +538,7 @@ def main():
                                           ordem=["Baixo", "Médio-Baixo", "Médio", "Médio-Alto", "Alto"])
                     plot_analise_completa(df_filtered, "bolsa_familia", "Bolsa Família")
                     plot_analise_completa(df_filtered, "escolaridade_resp1", "Escolaridade Resp. 1",
-                                          ordem=["Não alfabetizado", "Fundamental Incompleto", "Fundamental Completo", "Médio Incompleto", "Médio Completo", "Superior Incompleto", "Superior Completo"])
+                                          ordem=["Não informado", "Não alfabetizado", "Fundamental Incompleto", "Fundamental Completo", "Médio Incompleto", "Médio Completo", "Superior Incompleto", "Superior Completo"])
 
                 with tab3:
                     # R: Usando 'qtd_pessoas_domicilio' que é o nome correto da coluna
@@ -449,7 +547,7 @@ def main():
                     
                     if 'livros_qtd' in df_filtered.columns:
                         plot_analise_completa(df_filtered, "livros_qtd", "Quantidade de Livros em Casa",
-                                              ordem=["0-10", "11-50", "Mais de 100"]) # Ajuste conforme dados
+                                              ordem=["Não informado", "0-10", "11-50", "Mais de 100"]) # Ajuste conforme dados
 
                 with tab4:
                     st.info("Nota: Gere novos dados para visualizar estas informações corretamente.")
@@ -460,7 +558,7 @@ def main():
                         'pratica_leitura_compartilhada': 'Leitura em família?', 
                         'pratica_conversa_escola': 'Conversam sobre escola?'
                     }
-                    ordem_freq = ["Nunca", "Raramente", "Às vezes", "Frequentemente", "Sempre", "Semanalmente", "Diariamente"]
+                    ordem_freq = ["Não informado", "Nunca", "Raramente", "Às vezes", "Frequentemente", "Sempre", "Semanalmente", "Diariamente"]
                     
                     for col_db, pergunta in cols_praticas.items():
                         plot_analise_completa(df_filtered, col_db, pergunta, ordem=ordem_freq)
@@ -504,20 +602,36 @@ def main():
             complemento = st.text_input("Escola Anterior") if tipo_matricula == "Nova Matrícula" else st.text_input("Turma Anterior")
             
             st.markdown("### Socioeconômico e Familiar")
-            raca = st.selectbox("Cor/Raça", ["Parda", "Preta", "Branca", "Indígena", "Amarela"])
-            esc1 = st.selectbox("Escolaridade Responsável 1", ["Fundamental Incompleto", "Médio Completo", "Superior Completo"])
-            esc2 = st.selectbox("Escolaridade Responsável 2", ["", "Fundamental Incompleto", "Médio Completo", "Superior Completo"])
+            # Lista de opções padrão + "Não informado"
+            opcoes_raca = ["Não informado", "Parda", "Preta", "Branca", "Indígena", "Amarela"]
+            opcoes_esc = ["Não informado", "Não alfabetizado", "Fundamental Incompleto", "Fundamental Completo", "Médio Incompleto", "Médio Completo", "Superior Incompleto", "Superior Completo"]
+            opcoes_livros = ["Não informado", "0-10", "11-50", "51-100", "Mais de 100"]
+            opcoes_bolsa = ["Não informado", "Sim", "Não"]
+
+            raca = st.selectbox("Cor/Raça", opcoes_raca)
+            esc1 = st.selectbox("Escolaridade Responsável 1", opcoes_esc)
+            esc2 = st.selectbox("Escolaridade Responsável 2", ["Não informado", "", "Fundamental Incompleto", "Médio Completo", "Superior Completo"])
             bens = st.multiselect("Bens", ["TV", "Carro", "Computador/Notebook", "Internet Wifi", "Ar Condicionado"])
             banheiros = st.number_input("Banheiros", 1, 5)
             pessoas = st.number_input("Pessoas na casa", 1, 15)
-            livros = st.selectbox("Livros em casa", ["0-10", "11-50", "Mais de 100"])
-            bolsa = st.radio("Recebe Bolsa Família?", ["Sim", "Não"], horizontal=True)
+            livros = st.selectbox("Livros em casa", opcoes_livros)
+            bolsa = st.radio("Recebe Bolsa Família?", opcoes_bolsa, horizontal=True)
             
-            p1 = st.select_slider("Local adequado para estudar?", ["Nunca", "Raramente", "Às vezes", "Frequentemente", "Sempre"])
-            p2 = st.select_slider("Horário fixo de estudo?", ["Nunca", "Raramente", "Às vezes", "Frequentemente", "Sempre"])
-            p3 = st.selectbox("Pais ajudam nas tarefas?", ["Nunca", "Raramente", "Semanalmente", "Diariamente"])
-            p4 = st.selectbox("Leitura em família?", ["Nunca", "Raramente", "Semanalmente", "Diariamente"])
-            p5 = st.selectbox("Conversam sobre a escola?", ["Nunca", "Raramente", "Semanalmente", "Diariamente"])
+            st.markdown("### Práticas Familiares (Gamificado)")
+            
+            # --- Seção Gamificada ---
+            with st.expander(label="🏠 Onde e quando o aluno estuda?", expanded=True):
+                 # Ajustado para st.radio conforme solicitado
+                 opcoes_freq_estudo = ["Não informado", "Nunca", "Raramente", "Às vezes", "Frequentemente", "Sempre"]
+                 p1 = st.radio("Local adequado para estudar?", opcoes_freq_estudo, horizontal=True)
+                 p2 = st.radio("Horário fixo de estudo?", opcoes_freq_estudo, horizontal=True)
+
+            with st.expander(label="👨‍👩‍👧‍👦 Envolvimento da Família", expanded=True):
+                 opcoes_freq = ["Não informado", "Nunca", "Raramente", "Semanalmente", "Diariamente"]
+                 p3 = st.radio("Pais ajudam nas tarefas?", opcoes_freq, horizontal=True)
+                 p4 = st.radio("Leitura em família?", opcoes_freq, horizontal=True)
+                 p5 = st.radio("Conversam sobre a escola?", opcoes_freq, horizontal=True)
+            # -------------------------
 
             submitted = st.form_submit_button("✅ Registrar Aluno")
             if submitted:
