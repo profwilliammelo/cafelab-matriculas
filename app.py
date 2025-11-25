@@ -321,7 +321,7 @@ def main():
         with col_btn:
             st.toggle('🌗', value=(st.session_state.theme == 'dark'), on_change=toggle_theme)
         
-        st.title("Menu NAVE")
+        st.title("Painel de dados de matrícula da NAVE")
         page = st.radio("Navegação:", ["Dashboard", "Formulário de Matrícula", "Administração"])
     
     sh = get_spreadsheet_object()
@@ -459,7 +459,7 @@ def main():
             livros = st.selectbox("Livros em casa", ["Não informado", "0-10", "11-50", "51-100", "Mais de 100"])
             bolsa = st.radio("Recebe Bolsa Família?", ["Não informado", "Sim", "Não"], horizontal=True)
             
-            st.markdown("### Práticas Familiares (Gamificado)")
+            st.markdown("### Práticas Familiares")
             with st.expander(label="🏠 Onde e quando o aluno estuda?", expanded=True):
                  opcoes_freq_estudo = ["Não informado", "Nunca", "Raramente", "Às vezes", "Frequentemente", "Sempre"]
                  p1 = st.radio("Local adequado para estudar?", opcoes_freq_estudo, horizontal=True)
