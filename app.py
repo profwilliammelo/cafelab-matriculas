@@ -122,9 +122,11 @@ def get_spreadsheet_object():
             creds = ServiceAccountCredentials.from_json_keyfile_name("rwilliammelo-7509a86c9df0.json", SCOPES)
         
         client = gspread.authorize(creds)
-        return client.open("Matrículas 2026 - NAVE")
+        # USANDO ID DA PLANILHA PARA EVITAR ERROS DE NOME
+        return client.open_by_key("1lKH8BrZ0LVi_tufuv9_kEeOhJGLueSQahh-6Ft1_idA")
     except Exception as e:
         st.error(f"Erro de Conexão com Google Sheets: {e}")
+        st.info("Dica: Verifique se a planilha foi compartilhada com 'cafe-lab-matriculas@rwilliammelo.iam.gserviceaccount.com'")
         return None
 
 def setup_spreadsheet():
