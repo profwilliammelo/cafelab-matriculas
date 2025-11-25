@@ -6,13 +6,14 @@ from datetime import datetime
 import plotly.express as px
 from faker import Faker
 import random
+import os
 
 # --- Configuração da Página ---
-st.set_page_config(page_title="Matrículas 2026 - NAVE", layout="wide", page_icon="🚀")
+st.set_page_config(layout="wide", page_title="NAVE 2026 Dashboard", page_icon="🚀")
 
-# --- Estilização Personalizada (CSS) ---
+# --- Estilos CSS ---
 st.markdown("""
-    <style>
+<style>
     .main {
         background-color: #f8f9fa;
     }
