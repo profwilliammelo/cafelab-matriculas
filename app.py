@@ -103,6 +103,40 @@ BAIRROS_MARICA = sorted(list(COORDENADAS_BAIRROS.keys()))
 
 # --- Funções Auxiliares ---
 
+def login():
+    st.markdown("### 🔒 Acesso Restrito")
+    senha = st.text_input("Digite a senha:", type="password")
+    if st.button("Entrar"):
+        if senha == PASSWORD:
+            st.session_state.password_correct = True
+            st.rerun()
+        else:
+            st.error("Senha incorreta!")
+
+def get_spreadsheet_object():
+    try:
+        if "gsheets" in st.secrets:
+            creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["gsheets"], SCOPES)
+        else:
+            # Fallback para desenvolvimento local
+            creds = ServiceAccountCredentials.from_json_keyfile_name("rwilliammelo-7509a86c9df0.json", SCOPES)
+        
+        client = gspread.authorize(creds)
+        return client.open("Matrículas 2026 - NAVE")
+    except Exception as e:
+        st.error(f"Erro de Conexão com Google Sheets: {e}")
+        return None
+
+def setup_spreadsheet():
+    return get_spreadsheet_object()
+
+def save_data(sh, tab_name, data):
+    try:
+        worksheet = sh.worksheet(tab_name)
+        worksheet.append_row(data)
+    except Exception as e:
+        st.error(f"Erro ao salvar dados: {e}")
+
 def check_password():
     if "password_correct" not in st.session_state:
         st.session_state.password_correct = False
